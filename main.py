@@ -54,10 +54,8 @@ async def composite(request: Request):
     if imgs['base_img'] is not None and len(imgs['top_imgs']) > 0:
         base_img = imgs['base_img']
         top_imgs = imgs['top_imgs']
-        result = composite_img(base_img, top_imgs, ops)
+        result = await composite_img(base_img, top_imgs, ops)
         return Response(content = result)
-
-    return Response(content = '')
 
 @app.get("/")
 async def index(request: Request):
