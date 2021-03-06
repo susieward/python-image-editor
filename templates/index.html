@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container">
+  <div id="images-output">
+    <canvas id="canvas" style="display: none"></canvas>
+  </div>
+  <div id="sidebar-wrapper">
+    <div id="sidebar-container">
+      <div style="display: grid; align-content: flex-start;">
+        <span style="display: block; margin-bottom: 5px;">
+          <span>Base image:</span> <a href="#" id="base-upload">Select file</a>
+        </span>
+        <div style="min-height: 50px; margin-bottom: 30px">
+          <img style="display: none" src="" id="base_img" />
+        </div>
+        <span style="display: block; margin-bottom: 10px;">
+          <span>Image(s) to composite:</span> <a href="#" id="comp-upload">Add file</a>
+        </span>
+        <div id="sidebar"></div>
+      </div>
+    </div>
+    <div class="button-wrapper">
+      <button id="upload-btn">create composite</button>
+    </div>
+    <p id="error" style="color: red; line-height: 26px; margin-bottom: auto"></p>
+    <input type="file" id="base-input" style="display: none"  multiple />
+    <input type="file" id="comp-input" style="display: none" multiple  />
+    <span id="select-wrapper" style="display: none">
+      <select id="select1">
+        <option value="">Select operator</option>
+        {% for operator in operators %}
+        <option value="{{ operator }}">{{ operator }}</option>
+        {% endfor %}
+      </select>
+    </span>
+  </div>
+  <div id="footer"></div>
+</div>
+{% endblock %}
