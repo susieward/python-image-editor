@@ -6,4 +6,4 @@ Experimental, WIP web app for playing around with python's Wand library. Allows 
 2. python3 -m venv env
 3. source env/bin/activate
 4. pip install -r requirements.txt
-5. uvicorn app:app --reload
+5. uvicorn main:app --reload
