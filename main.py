@@ -29,7 +29,7 @@ async def get_blob(request: Request, key):
        imgs[f'{key}'].append(blob)
     else:
         imgs[f'{key}'] = blob
-    return Response(content = 'Ok')
+    return Response(content = f'Uploaded key: {key}')
 
 @app.get('/remove/{index}')
 async def remove(request: Request, index):
@@ -55,7 +55,8 @@ async def composite(request: Request):
         base_img = imgs['base_img']
         top_imgs = imgs['top_imgs']
         result = await composite_img(base_img, top_imgs, ops)
-        return Response(content = result)
+        if result:
+            return Response(content = result, headers = { "Content-Encoding": "gzip" })
 
 @app.get("/")
 async def index(request: Request):

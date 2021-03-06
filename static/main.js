@@ -194,10 +194,14 @@ function getImgBlobReader(imgKey){
     let val = images[`${imgKey}`]
     if(Array.isArray(val)){
       val.push(blob)
-      return await uploadImgBlob(imgKey, blob)
+      return await uploadImgBlob(imgKey, blob).catch(err => {
+        throw err
+      })
     }
     images[`${imgKey}`] = blob
-    return await uploadImgBlob(imgKey, blob)
+    return await uploadImgBlob(imgKey, blob).catch(err => {
+      throw err
+    })
   }
   return reader
 }
