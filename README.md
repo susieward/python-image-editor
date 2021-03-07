@@ -3,7 +3,11 @@ Experimental, WIP web app for playing around with python's Wand library. Allows 
 
 https://python-image-editor.herokuapp.com
 
+## Examples
+
 ![alt text](./examples/comp.png)
+![alt text](./examples/comp5.png)
+![alt text](./examples/comp2.png)
 
 ## Setup
 1. git clone
