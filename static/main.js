@@ -1,7 +1,3 @@
-(async () => {
-  await fetch('/clear', { method: 'GET' })
-})()
-
 const Mode = document.getElementById('mode')
 const Body = document.querySelector('body')
 
@@ -77,20 +73,41 @@ UploadBtn.addEventListener('click', getComposite, false)
 // composite API call logic
 async function getComposite(){
   try {
+    await fetch('/clear', { method: 'GET' })
     const selectEls = [...Sidebar.querySelectorAll('select')]
-
     ErrorOutput.innerText = ''
     if(!images.base_img || images.top_imgs.length === 0){
       ErrorOutput.innerText = 'Both a base image and at least one composite image must be uploaded.'
       return
     }
-
     if(Object.values(data).some(val => val.length === 0)){
       return ErrorOutput.innerText = 'All composite images must have a selected operator value.'
     }
-
     UploadBtn.innerText = "creating..."
     UploadBtn.setAttribute('disabled', true)
+
+    const baseRes = await uploadImgBlob('base', images.base_img)
+    if(!baseRes.ok){
+      let message = await baseRes.text()
+      throw new Error(message)
+    }
+    const results = await Promise.all(images.top_imgs.map(async blob => {
+      return await uploadImgBlob('comp', blob)
+    }))
+
+    if(results.some(result => !result.ok)){
+      let errs = results.flatMap(async res => {
+        if(!res.ok){
+          return await res.text()
+        }
+        return []
+      })
+      console.log('errs', errs)
+      ErrorOutput.innerText = 'Error'
+      UploadBtn.innerText = "create composite"
+      UploadBtn.removeAttribute('disabled')
+      return false
+    }
 
     const res = await fetch('/composite', {
       method: 'POST',
@@ -144,15 +161,14 @@ async function getComposite(){
 }
 
 // image file upload logic
-async function handleFiles(context, imgKey){
+function handleFiles(context, imgKey){
   try {
     const files = Array.from(context.files)
     const urlReader = getImgUrlReader(imgKey)
     const blobReader = getImgBlobReader(imgKey)
-    await Promise.all(files.map(async file => {
-      urlReader.readAsDataURL(file);
-      return await blobReader.readAsArrayBuffer(file)
-    })).catch(err => { throw err })
+    let file = files[0]
+    urlReader.readAsDataURL(file)
+    blobReader.readAsArrayBuffer(file)
   } catch(err){
     console.log('handleFiles err: ', err)
     throw err
@@ -201,17 +217,16 @@ function getImgBlobReader(imgKey){
     let val = images[`${imgKey}`]
     if(Array.isArray(val)){
       val.push(blob)
-      return await uploadImgBlob(imgKey, blob)
+      return
     }
-    images[`${imgKey}`] = blob
-    return await uploadImgBlob(imgKey, blob)
+    return images[`${imgKey}`] = blob
   }
   return reader
 }
 
 async function uploadImgBlob(imgKey, blob){
   try {
-    const res = await fetch(`/upload/${imgKey}`, {
+    const res = await fetch(`/${imgKey}`, {
       method: 'POST',
       body: blob
     })
@@ -219,6 +234,7 @@ async function uploadImgBlob(imgKey, blob){
       let message = await res.text()
       throw new Error(message)
     }
+    return res
   } catch(err){
     console.log('err', err)
     ErrorOutput.innerText = err
@@ -263,18 +279,15 @@ function handleRemove(e, key){
   if(index === -1){
     throw new Error('handleRemove: index = -1')
   } else {
-    return removeImgBlob(index, key).then(res => {
-      const child = Sidebar.querySelector(`#${key}`)
-      const parent = child.parentNode
-      parent.remove()
-    }).catch(err => {
-      console.log(err)
-      throw err
-    })
+    images.top_imgs.splice(index, 1)
+    delete data[`${key}`]
+    const child = Sidebar.querySelector(`#${key}`)
+    const parent = child.parentNode
+    parent.remove()
   }
 }
 
-// remove image + data reference
+/*
 async function removeImgBlob(index, key){
   try {
     const res = await fetch(`/remove/${index}`, { method: 'GET'})
@@ -287,3 +300,4 @@ async function removeImgBlob(index, key){
     throw new Error(`removeImgBlob err: ${err}`)
   }
 }
+*/

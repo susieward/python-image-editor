@@ -10,66 +10,66 @@ app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.mount("/static", StaticFiles(directory = "static"), name = "static")
 templates = Jinja2Templates(directory = "templates")
 
-imgs = { "base_img": None, "top_imgs": [] }
-ops = []
+class CompositeState:
+    def __init__(self):
+        self.base_img = None
+        self.comp_imgs = []
+        self.ops = []
+
+    def reset(self):
+        self.base_img = None
+        self.comp_imgs = []
+        self.ops = []
+        return self
+
+    def set_base(self, img):
+        self.base_img = img
+        return self
+
+    def add_comp(self, img):
+        self.comp_imgs.append(img)
+        return self
+
+    def set_ops(self, ops):
+        self.ops = ops
+        return self
+
+    async def create_composite(self):
+        result = await composite_img(self.base_img, self.comp_imgs, self.ops)
+        return result
+
+state = CompositeState()
 
 @app.get('/clear')
 async def clear(request: Request):
-    global imgs
-    imgs['base_img'] = None
-    imgs['top_imgs'] = []
+    state.reset()
+    print(state.base_img, state.comp_imgs, state.ops)
     return Response(content = 'Cleared')
 
-@app.post('/upload/{key}')
-async def get_blob(request: Request, key):
-    global imgs
-    global ops
+@app.post('/base')
+async def base(request: Request):
+    #global base_img
     blob = await request.body()
+    state.set_base(blob)
+    return Response(content = 'Uploaded base img')
 
-    #print(blob)
-
-    if key == 'top_imgs':
-       imgs['top_imgs'].append(blob)
-    else:
-        imgs['base_img'] = blob
-
-    #print(imgs['top_imgs'])
-    return Response(content = f'Uploaded key: {key}, top_imgs length: {len(imgs["top_imgs"])}, ops length: {len(ops)}')
-
-@app.get('/remove/{index}')
-async def remove(request: Request, index):
-    global imgs
-    global ops
-    i = int(index)
-    img = imgs['top_imgs'][i]
-    imgs['top_imgs'].remove(img)
-
-    if len(ops) > 0:
-        op = ops[i]
-        if op in ops:
-            ops.remove(op)
-            return Response(content = 'Removed')
-        else:
-            raise HTTPException(status_code=404, detail="Index not found")
-    else:
-        raise HTTPException(status_code=500, detail="ops length = 0")
+@app.post('/comp')
+async def comp(request: Request):
+    blob = await request.body()
+    state.add_comp(blob)
+    return Response(content = 'Added comp img')
 
 @app.post('/composite')
 async def composite(request: Request):
-    global ops
-    global imgs
     ops = await request.json()
+    state.set_ops(ops)
+    result = await state.create_composite()
 
-    print(len(ops))
-
-    if imgs['base_img'] is not None and len(imgs['top_imgs']) == len(ops):
-        base_img = imgs['base_img']
-        top_imgs = imgs['top_imgs']
-        result = await composite_img(base_img, top_imgs, ops)
-        if result is not None:            
-            return Response(content = result, headers = { "Content-Encoding": "gzip" })
+    if result:
+        return Response(content = result, headers = { "Content-Encoding": "gzip" })
     else:
-        raise HTTPException(status_code=500, detail= f"Top images length: {len(imgs['top_imgs'])}, ops = {ops}")
+        print(result)
+        raise HTTPException(status_code=500)
 
 @app.get("/")
 async def index(request: Request):
