@@ -152,7 +152,7 @@ async function handleFiles(context, imgKey){
     await Promise.all(files.map(async file => {
       urlReader.readAsDataURL(file);
       return await blobReader.readAsArrayBuffer(file)
-    }))
+    })).catch(err => { throw err })
   } catch(err){
     console.log('handleFiles err: ', err)
     throw err
@@ -215,9 +215,13 @@ async function uploadImgBlob(imgKey, blob){
       method: 'POST',
       body: blob
     })
-    //console.log('res', res)
+    if(!res.ok){
+      let message = await res.text()
+      throw new Error(message)
+    }
   } catch(err){
     console.log('err', err)
+    ErrorOutput.innerText = err
     throw err
   }
 }

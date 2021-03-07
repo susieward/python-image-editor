@@ -25,10 +25,15 @@ async def get_blob(request: Request, key):
     global imgs
     global ops
     blob = await request.body()
+
+    #print(blob)
+
     if key == 'top_imgs':
-       imgs[f'{key}'].append(blob)
+       imgs['top_imgs'].append(blob)
     else:
-        imgs[f'{key}'] = blob
+        imgs['base_img'] = blob
+
+    #print(imgs['top_imgs'])
     return Response(content = f'Uploaded key: {key}, top_imgs length: {len(imgs["top_imgs"])}, ops length: {len(ops)}')
 
 @app.get('/remove/{index}')
@@ -55,11 +60,14 @@ async def composite(request: Request):
     global imgs
     ops = await request.json()
 
+    print(len(ops))
+
     if imgs['base_img'] is not None and len(imgs['top_imgs']) == len(ops):
         base_img = imgs['base_img']
         top_imgs = imgs['top_imgs']
-        result = composite_img(base_img, top_imgs, ops)
-        return Response(content = result, headers = { "Content-Encoding": "gzip" })
+        result = await composite_img(base_img, top_imgs, ops)
+        if result is not None:            
+            return Response(content = result, headers = { "Content-Encoding": "gzip" })
     else:
         raise HTTPException(status_code=500, detail= f"Top images length: {len(imgs['top_imgs'])}, ops = {ops}")
 
