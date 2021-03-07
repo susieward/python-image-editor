@@ -63,13 +63,15 @@ async def comp(request: Request):
 async def composite(request: Request):
     ops = await request.json()
     state.set_ops(ops)
-    result = await state.create_composite()
 
-    if result:
-        return Response(content = result, headers = { "Content-Encoding": "gzip" })
-    else:
-        print(result)
-        raise HTTPException(status_code=500)
+    if state.base_img is not None and len(state.comp_imgs) > 0:
+        result = await state.create_composite()
+
+        if result:
+            return Response(content = result, headers = { "Content-Encoding": "gzip" })
+        else:
+            print(result)
+            raise HTTPException(status_code=500)
 
 @app.get("/")
 async def index(request: Request):
