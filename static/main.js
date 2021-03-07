@@ -78,12 +78,14 @@ UploadBtn.addEventListener('click', getComposite, false)
 async function getComposite(){
   try {
     const selectEls = [...Sidebar.querySelectorAll('select')]
+
     ErrorOutput.innerText = ''
     if(!images.base_img || images.top_imgs.length === 0){
       ErrorOutput.innerText = 'Both a base image and at least one composite image must be uploaded.'
       return
     }
-    if(Object.entries(data).length < selectEls.length){
+
+    if(Object.values(data).some(val => val.length === 0)){
       return ErrorOutput.innerText = 'All composite images must have a selected operator value.'
     }
 
@@ -98,41 +100,46 @@ async function getComposite(){
       body: JSON.stringify(Object.values(data))
     })
 
-    const blob = await res.blob()
-    const objectURL = URL.createObjectURL(blob)
+   if(!res.ok){
+     let message = await res.text()
+     throw new Error(message)
+   }
+     const blob = await res.blob()
+     const objectURL = URL.createObjectURL(blob)
 
-    if(!resultImg){
-      let link = document.createElement("a")
-      link.setAttribute('id', 'download-link')
-      link.setAttribute('download', 'image.png')
-      link.innerText = 'save image'
-      let div = document.getElementById('sidebar-wrapper')
-      div.insertBefore(link, ErrorOutput)
-      downloadLink = document.getElementById('download-link')
-      let img = document.createElement("img")
-      img.setAttribute('id', 'result-img')
-      resultImg = img
-    }
+     if(!resultImg){
+       let link = document.createElement("a")
+       link.setAttribute('id', 'download-link')
+       link.setAttribute('download', 'image.png')
+       link.innerText = 'save image'
+       let div = document.getElementById('sidebar-wrapper')
+       div.insertBefore(link, ErrorOutput)
+       downloadLink = document.getElementById('download-link')
+       let img = document.createElement("img")
+       img.setAttribute('id', 'result-img')
+       resultImg = img
+     }
 
-    resultImg.addEventListener('load', (e) => {
-      let result = e.path[0]
-      result.setAttribute('width', 'auto')
-      result.setAttribute('style', 'object-fit: cover')
-      Canvas.setAttribute('width', result.width)
-      Canvas.setAttribute('height', result.height)
-      ctx.drawImage(resultImg, 0, 0);
-    })
+     resultImg.addEventListener('load', (e) => {
+       let result = e.path[0]
+       result.setAttribute('width', 'auto')
+       result.setAttribute('style', 'object-fit: cover')
+       Canvas.setAttribute('width', result.width)
+       Canvas.setAttribute('height', result.height)
+       ctx.drawImage(resultImg, 0, 0);
+     })
 
-    resultImg.src = objectURL
-    downloadLink.href = objectURL
+     resultImg.src = objectURL
+     downloadLink.href = objectURL
 
-    UploadBtn.innerText = "create composite"
-    UploadBtn.removeAttribute('disabled')
+     UploadBtn.innerText = "create composite"
+     UploadBtn.removeAttribute('disabled')
   } catch(err){
-    ErrorOutput.innerText = err.message
+    console.log('err', err)
+    ErrorOutput.innerText = err
     UploadBtn.innerText = "create composite"
     UploadBtn.removeAttribute('disabled')
-    throw err
+    //throw err
   }
 }
 
@@ -203,10 +210,16 @@ function getImgBlobReader(imgKey){
 }
 
 async function uploadImgBlob(imgKey, blob){
-  return fetch(`/upload/${imgKey}`, {
-    method: 'POST',
-    body: blob
-  })
+  try {
+    const res = await fetch(`/upload/${imgKey}`, {
+      method: 'POST',
+      body: blob
+    })
+    //console.log('res', res)
+  } catch(err){
+    console.log('err', err)
+    throw err
+  }
 }
 
 function initImageSelect(img){

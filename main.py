@@ -1,7 +1,6 @@
 from wand.image import COMPOSITE_OPERATORS
 from editor import composite_img
-from fastapi import FastAPI, Request
-from fastapi.responses import Response
+from fastapi import FastAPI, Request, Response, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.gzip import GZipMiddleware
@@ -24,12 +23,13 @@ async def clear(request: Request):
 @app.post('/upload/{key}')
 async def get_blob(request: Request, key):
     global imgs
+    global ops
     blob = await request.body()
     if key == 'top_imgs':
        imgs[f'{key}'].append(blob)
     else:
         imgs[f'{key}'] = blob
-    return Response(content = f'Uploaded key: {key}')
+    return Response(content = f'Uploaded key: {key}, top_imgs length: {len(imgs["top_imgs"])}, ops length: {len(ops)}')
 
 @app.get('/remove/{index}')
 async def remove(request: Request, index):
@@ -43,7 +43,11 @@ async def remove(request: Request, index):
         op = ops[i]
         if op in ops:
             ops.remove(op)
-    return Response(content = 'Removed')
+            return Response(content = 'Removed')
+        else:
+            raise HTTPException(status_code=404, detail="Index not found")
+    else:
+        raise HTTPException(status_code=500, detail="ops length = 0")
 
 @app.post('/composite')
 async def composite(request: Request):
@@ -51,12 +55,13 @@ async def composite(request: Request):
     global imgs
     ops = await request.json()
 
-    if imgs['base_img'] is not None and len(imgs['top_imgs']) > 0:
+    if imgs['base_img'] is not None and len(imgs['top_imgs']) == len(ops):
         base_img = imgs['base_img']
         top_imgs = imgs['top_imgs']
-        result = await composite_img(base_img, top_imgs, ops)
-        if result:
-            return Response(content = result, headers = { "Content-Encoding": "gzip" })
+        result = composite_img(base_img, top_imgs, ops)
+        return Response(content = result, headers = { "Content-Encoding": "gzip" })
+    else:
+        raise HTTPException(status_code=500, detail= f"Top images length: {len(imgs['top_imgs'])}, ops = {ops}")
 
 @app.get("/")
 async def index(request: Request):

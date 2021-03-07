@@ -1,7 +1,7 @@
 from wand.image import Image
 from wand.drawing import Drawing
 
-async def composite_img(base_img, top_imgs, ops):
+def composite_img(base_img, top_imgs, ops):
     base = Image(blob = base_img).clone()
     comp_imgs = list(map(lambda i: Image(blob = i).clone(), top_imgs))
 
@@ -12,6 +12,6 @@ async def composite_img(base_img, top_imgs, ops):
                 width = base.width, height = base.height, image = top)
         draw(base)
         base.morphology(method = 'smooth', kernel = 'blur')
-        base.enhance()
+        #base.enhance()
         jpeg_bin = base.make_blob('jpeg')
-        return jpeg_bin
+    return jpeg_bin
