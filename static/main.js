@@ -105,7 +105,7 @@ async function getComposite(){
        let link = document.createElement("a")
        link.setAttribute('id', 'download-link')
        link.setAttribute('download', 'image.png')
-       link.innerText = 'save image'
+       link.innerText = 'download image'
        let div = document.getElementById('sidebar-wrapper')
        div.insertBefore(link, ErrorOutput)
        downloadLink = document.getElementById('download-link')
@@ -210,6 +210,9 @@ async function uploadImgBlob(imgKey, blob){
       body: blob
     })
     if(!res.ok){
+      if(res.status == 413){
+        throw new Error(res.statusText)
+      }
       let message = await res.text()
       message = JSON.parse(message)
       throw new Error(message.detail)
