@@ -25,6 +25,7 @@
     <p id="error" style="color: red; line-height: 26px; margin-bottom: auto"></p>
     <input type="file" id="base-input" style="display: none"  multiple />
     <input type="file" id="comp-input" style="display: none" multiple  />
+    <input type="file" id="gallery-input" style="display: none" multiple  />
     <span id="select-wrapper" style="display: none">
       <select id="select1">
         <option value="">Select operator</option>
@@ -34,6 +35,8 @@
       </select>
     </span>
   </div>
-  <div id="footer"></div>
 </div>
+{% endblock %}
+{% block script %}
+<script src="../static/main.js"></script>
 {% endblock %}

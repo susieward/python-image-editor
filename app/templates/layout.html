@@ -9,13 +9,18 @@
   </head>
   <body class="theme-light">
     <div id="app">
-      <div id="mode">☾</div>
+      <nav>
+        <a href="/">home</a>
+        <a href="/gallery">gallery</a>
+        <div id="mode">☾</div>
+      </nav>
       <div id="content">
         {% block content %}{% endblock %}
       </div>
+      <div id="footer"></div>
     </div>
   </body>
+  <script src="../static/darkmode.js"></script>
   {% block script %}
-  <script src="../static/main.js"></script>
   {% endblock %}
 </html>

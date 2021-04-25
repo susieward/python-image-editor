@@ -1,39 +1,15 @@
-const Mode = document.getElementById('mode')
-const Body = document.querySelector('body')
-
-var localDarkMode = localStorage.getItem('darkMode')
-var darkMode = false
-
-if(localDarkMode !== null){
-  darkMode = JSON.parse(localDarkMode)
-  setCurrentTheme(darkMode)
-}
-
-Mode.addEventListener('click', (e) => {
-  darkMode = !darkMode
-  setCurrentTheme(darkMode)
-  localStorage.setItem('darkMode', JSON.stringify(darkMode))
-})
-
-function setCurrentTheme(isDarkMode){
-  const theme = (isDarkMode === true) ? 'theme-dark' : 'theme-light'
-  return Body.setAttribute('class', `${theme}`)
-}
-
 const BaseInput = document.getElementById('base-input')
 const CompInput = document.getElementById('comp-input')
 const BaseUpload = document.getElementById('base-upload')
 const CompUpload= document.getElementById('comp-upload')
 const ImagesOutput = document.getElementById('images-output')
 
-const Footer = document.getElementById('footer')
 const Sidebar = document.getElementById('sidebar')
 const SidebarContainer = document.getElementById('sidebar-container')
 
 const Select = document.getElementById('select1')
 const UploadBtn = document.getElementById('upload-btn')
 const ErrorOutput = document.getElementById('error')
-Footer.innerHTML = `&copy; Susie Ward ${new Date().getFullYear()}`
 
 const Canvas = document.getElementById('canvas')
 const ctx = Canvas.getContext('2d')
@@ -75,16 +51,15 @@ async function getComposite(){
   try {
     const selectEls = [...Sidebar.querySelectorAll('select')]
     ErrorOutput.innerText = ''
-    if(!images.base_img || images.top_imgs.length === 0){
+    if (!images.base_img || images.top_imgs.length === 0) {
       ErrorOutput.innerText = 'Both a base image and at least one composite image must be uploaded.'
       return
     }
-    if(Object.values(data).some(val => val.length === 0)){
+    if (Object.values(data).some(val => val.length === 0)) {
       return ErrorOutput.innerText = 'All composite images must have a selected operator value.'
     }
     UploadBtn.innerText = "creating..."
     UploadBtn.setAttribute('disabled', true)
-
     const res = await fetch('/composite', {
       method: 'POST',
       headers: {
@@ -93,7 +68,7 @@ async function getComposite(){
       body: JSON.stringify(Object.values(data))
     })
 
-   if(!res.ok){
+   if (!res.ok) {
      let message = await res.text()
      message = JSON.parse(message)
      throw new Error(message.detail)
@@ -101,7 +76,7 @@ async function getComposite(){
      const blob = await res.blob()
      const objectURL = URL.createObjectURL(blob)
 
-     if(!resultImg){
+     if (!resultImg) {
        let link = document.createElement("a")
        link.setAttribute('id', 'download-link')
        link.setAttribute('download', 'image.png')
@@ -113,7 +88,6 @@ async function getComposite(){
        img.setAttribute('id', 'result-img')
        resultImg = img
      }
-
      resultImg.addEventListener('load', (e) => {
        let result = e.path[0]
        result.setAttribute('width', 'auto')
@@ -122,10 +96,8 @@ async function getComposite(){
        Canvas.setAttribute('height', result.height)
        ctx.drawImage(resultImg, 0, 0);
      })
-
      resultImg.src = objectURL
      downloadLink.href = objectURL
-
      UploadBtn.innerText = "create composite"
      UploadBtn.removeAttribute('disabled')
   } catch(err){
@@ -152,7 +124,6 @@ function handleFiles(context, imgKey){
   }
 }
 
-
 function getImgUrlReader(imgKey){
   const baseImg = document.getElementById('base_img')
   const reader = new FileReader()
@@ -161,13 +132,13 @@ function getImgUrlReader(imgKey){
       ? baseImg
       : new Image()
     let canvasBaseImg = new Image()
-    if(imgKey === 'base_img'){
+    if (imgKey === 'base_img') {
       canvasBaseImg.addEventListener('load', (e) => {
         let result = e.path[0]
         result.setAttribute('width', 'auto')
         result.setAttribute('style', 'object-fit: cover')
 
-        if(Canvas.hasAttribute('style')){
+        if (Canvas.hasAttribute('style')) {
           Canvas.removeAttribute('style')
         }
         Canvas.setAttribute('width', result.width)
@@ -177,7 +148,7 @@ function getImgUrlReader(imgKey){
     }
     img.src = e.target.result
     img.setAttribute('style', 'display: inline-block; width: 100px; height: auto')
-    if(imgKey === 'base_img'){
+    if (imgKey === 'base_img') {
       canvasBaseImg.src = e.target.result
       return
     }
@@ -186,13 +157,12 @@ function getImgUrlReader(imgKey){
   return reader
 }
 
-
 function getImgBlobReader(imgKey){
   const reader = new FileReader()
   reader.onload = async (e) => {
     let blob = new Blob([e.target.result])
     let val = images[`${imgKey}`]
-    if(Array.isArray(val)){
+    if (Array.isArray(val)) {
       uploadImgBlob('comp', blob)
       val.push(blob)
       return
@@ -209,8 +179,8 @@ async function uploadImgBlob(imgKey, blob){
       method: 'POST',
       body: blob
     })
-    if(!res.ok){
-      if(res.status == 413){
+    if (!res.ok) {
+      if (res.status == 413) {
         throw new Error(res.statusText)
       }
       let message = await res.text()
@@ -241,7 +211,6 @@ function initImageSelect(img){
   }, false)
 }
 
-
 // select dropdown handlers + adding/removing select elements
 function createSelect(key){
   const newSelect = document.createElement("select")
@@ -259,7 +228,7 @@ function handleSelect(e, key){
 
 function handleRemove(e, key){
   const index = Object.keys(data).findIndex(k => k === `${key}`)
-  if(index === -1){
+  if (index === -1) {
     throw new Error('handleRemove: index = -1')
   } else {
     return removeImgBlob(index).then(res => {
@@ -282,13 +251,17 @@ async function removeImgBlob(index, key){
       method: 'POST',
       body: JSON.stringify({ index: `${index}`})
     })
-    if(!res.ok){
-      let message = await res.text()
-      message = JSON.parse(message)
-      throw new Error(message.detail)
-    }
-    return res
+    return await handleRes(res)
   } catch(err){
     throw err
   }
+}
+
+async function handleRes(res){
+  if (!res.ok) {
+    let message = await res.text()
+    message = JSON.parse(message)
+    throw new Error(message.detail)
+  }
+  return res
 }

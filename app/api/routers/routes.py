@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Request, Response, HTTPException
 from fastapi.templating import Jinja2Templates
 from wand.image import COMPOSITE_OPERATORS
-from services.composite import CompositeService
+from app.services.composite import CompositeService
 
-templates = Jinja2Templates(directory = "templates")
+templates = Jinja2Templates(directory = "app/templates")
 
 router = APIRouter()
 composite_service = CompositeService()

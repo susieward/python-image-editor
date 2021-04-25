@@ -12,7 +12,20 @@
 .theme-light a {
   color: slateblue;
   text-decoration: none;
-  border-bottom: 1px solid slateblue;
+  /*border-bottom: 1px solid slateblue;*/
+}
+
+.theme-light nav {
+  background-color: rgba(255, 255, 255, 0.38);
+}
+
+.theme-light nav a {
+  color: #777;
+  text-decoration: none;
+}
+
+.theme-light nav a:hover {
+  color: #aaa;
 }
 
 .theme-light button {
@@ -41,12 +54,25 @@
 
 .theme-dark {
   color: #aaa;
-  background-color: #262626;
+  background-color: #333;
+  /*background-color: #262626; */
 }
 
 .theme-dark a {
   color: mediumslateblue;
-  border-bottom: 1px solid mediumslateblue;
+}
+
+.theme-dark nav {
+  background-color: rgba(51, 51, 51, 0.40);
+}
+
+.theme-dark nav a {
+  color: #aaa;
+  text-decoration: none;
+}
+
+.theme-dark nav a:hover {
+  color: #777;
 }
 
 .theme-dark button {
@@ -89,8 +115,8 @@ a {
 
 #mode {
   position: absolute;
-  top: 20px;
-  right: 20px;
+  top: 10px;
+  right: 30px;
   font-family: HelveticaNeue-CondensedBold,Futura-Medium,-apple-system,'Arial Rounded MT Bold',system-ui,Ubuntu,sans-serif,'Arial Unicode MS','Zapf Dingbats','Segoe UI Emoji','Segoe UI Symbol',Noto Color Emoji, NotoColorEmoji,EmojiSymbols,Symbola,Noto,'Android Emoji',AndroidEmoji,'lucida grande',tahoma,verdana,arial,AppleColorEmoji,'Apple Color Emoji';
   font-size: 32px;
   cursor: pointer;
@@ -100,10 +126,24 @@ a {
   display: grid;
   max-width: 100vw;
   max-height: 100vh;
-  grid-template-rows: 1fr;
+  min-height: 100vh;
+  grid-template-rows: 60px 1fr 60px;
   grid-template-columns: 1fr;
   margin: 0;
   padding: 0 0px;
+}
+
+#app nav {
+  display: grid;
+  justify-content: flex-start;
+  align-content: center;
+  height: 100%;
+  position: sticky;
+  top: 0px;
+  padding-left: 30px;
+  grid-auto-columns: auto;
+  grid-auto-flow: column;
+  grid-column-gap: 30px;
 }
 
 #app h1 {
@@ -150,6 +190,39 @@ a {
   margin-top: 30px;
   padding: 0px 30px;
 }
+
+.side-wrapper {
+  display: grid;
+  width: 100%;
+  margin-left: auto;
+  align-items: flex-start;
+  margin-bottom: auto;
+  padding: 20px;
+}
+
+.side-container {
+  display: grid;
+  margin-left: auto;
+  grid-row-gap: 20px;
+  width: 100%;
+  height: auto;
+}
+
+.gallery-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  margin-top: 30px;
+  padding: 0px 30px;
+}
+
+#gallery-images-output {
+  display: grid;
+  justify-content: center;
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+
 
 #images-output {
   display: grid;
@@ -236,9 +309,10 @@ a {
 
 #footer {
   display: grid;
-  position: absolute;
-  bottom: 20px;
-  right: 30px;
+  position: sticky;
+  bottom: 0px;
+  padding-bottom: 20px;
+  padding-right: 30px;
   align-content: flex-end;
   text-align: right;
   justify-content: flex-end;
@@ -295,11 +369,12 @@ button:hover {
     max-width: 400px;
     min-width: auto;
   }
-
+/*
   #mode {
     top: auto;
     bottom: 20px;
     left: 20px;
   }
+  */
 
 }
