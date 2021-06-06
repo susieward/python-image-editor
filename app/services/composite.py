@@ -5,12 +5,12 @@ async def composite_img(base_img, comp_imgs, ops):
     base = Image(blob = base_img).clone()
     with Drawing() as draw:
         for i, img in enumerate(comp_imgs):
-            comp = Image(blob = img)
-            op = ops[i]
-            draw.composite(operator = op, left = 0, top = 0,
-                width = base.width, height = base.height, image = comp)
+            with Image(blob = img) as comp:
+                op = ops[i]
+                draw.composite(operator = op, left = 0, top = 0,
+                    width = base.width, height = base.height, image = comp)
         draw(base)
-        base.morphology(method = 'smooth', kernel = 'blur')
+        # base.morphology(method = 'smooth', kernel = 'blur')
         return base.make_blob('jpeg')
 
 class CompositeService:

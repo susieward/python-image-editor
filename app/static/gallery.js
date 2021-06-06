@@ -54,7 +54,7 @@ async function* generateImages(data) {
 
 async function streamImages(){
   try {
-    const res = await fetch('/gallery/images')
+    const res = await fetch('/gallery/image-stream')
     if (!res.ok) {
       let message = await res.text()
       throw new Error(message)
@@ -71,20 +71,18 @@ async function streamImages(){
 }
 
 async function* streamIterator(stream){
-  const reader = stream.getReader()
+  const reader = stream.pipeThrough(new TextDecoderStream()).getReader()
   try {
     while (true) {
       const { done, value } = await reader.read()
       if (done) {
         return
       }
-      yield value;
+      yield value
     }
   } catch(err) {
     console.log(err)
     throw err
-  } finally {
-    reader.releaseLock()
   }
 }
 

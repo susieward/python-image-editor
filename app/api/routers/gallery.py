@@ -29,8 +29,9 @@ async def init(image_service: ImageService = Depends(image_service_dep)):
 async def get_image_stream(image_service: ImageService = Depends(image_service_dep), file_service: ImageFileService = Depends(image_file_service_dep)):
     try:
         async def generate():
-            results = image_service.get_list(file_service=file_service)
+            results = image_service.get_stream(file_service=file_service)
             async for result in results:
+                #print(len(result))
                 yield result
         return StreamingResponse(generate(), headers = { 'Content-Encoding': 'gzip'})
     except Exception as e:
