@@ -6,7 +6,7 @@ class ImageException(Exception):
         self.message = message
         self.tags = tags or {}
         self.extras = extras or {}
-        super(ImageException, self).__init__(message)
+        super().__init__(message)
 
 
 class NotFoundError(ImageException):
@@ -20,4 +20,4 @@ class NotFoundError(ImageException):
             'type': resource_type,
             'id': resource_id
         }
-        super(NotFoundError, self).__init__(message, tags, extras)
+        super().__init__(message, tags, extras)

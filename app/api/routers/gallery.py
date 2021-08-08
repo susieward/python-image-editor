@@ -1,4 +1,3 @@
-from typing import Sequence, Optional, Dict, Any
 from uuid import UUID
 import json
 
@@ -21,9 +20,11 @@ router = APIRouter()
 async def gallery_index(request: Request):
     return templates.TemplateResponse('gallery.html', { 'request': request })
 
+
 @router.get('/init', response_model=HealthcheckResponse, tags=['gallery'])
 async def init(image_service: ImageService = Depends(image_service_dep)):
     return await image_service.create_table()
+
 
 @router.get('/image-stream', tags=['gallery'])
 async def get_image_stream(image_service: ImageService = Depends(image_service_dep), file_service: ImageFileService = Depends(image_file_service_dep)):
@@ -39,6 +40,7 @@ async def get_image_stream(image_service: ImageService = Depends(image_service_d
         msg = f"{e}"
         raise HTTPException(status_code=500, detail = msg)
 
+
 @router.get('/images', tags=['gallery'])
 async def get_images(image_service: ImageService = Depends(image_service_dep), file_service: ImageFileService = Depends(image_file_service_dep)):
     try:
@@ -47,6 +49,7 @@ async def get_images(image_service: ImageService = Depends(image_service_dep), f
         print(e)
         msg = f"{e}"
         raise HTTPException(status_code=500, detail = msg)
+
 
 @router.get('/image/{id}', response_model=Image, tags=['gallery'])
 async def get_image(
@@ -57,6 +60,7 @@ async def get_image(
     if not image:
         raise HTTPException(status_code=404, detail='Item not found')
     return image
+
 
 @router.post('/image', response_model=AddResponse, status_code=status.HTTP_201_CREATED, tags=['gallery'])
 async def create_image(

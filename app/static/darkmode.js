@@ -1,13 +1,10 @@
 const Mode = document.getElementById('mode')
 const Body = document.querySelector('body')
-const Footer = document.getElementById('footer')
-
-Footer.innerHTML = `&copy; Susie Ward ${new Date().getFullYear()}`
 
 var localDarkMode = localStorage.getItem('darkMode')
 var darkMode = false
 
-if(localDarkMode !== null){
+if (localDarkMode !== null) {
   darkMode = JSON.parse(localDarkMode)
   setCurrentTheme(darkMode)
 }
@@ -18,7 +15,7 @@ Mode.addEventListener('click', (e) => {
   localStorage.setItem('darkMode', JSON.stringify(darkMode))
 })
 
-function setCurrentTheme(isDarkMode){
+function setCurrentTheme(isDarkMode) {
   const theme = (isDarkMode === true) ? 'theme-dark' : 'theme-light'
   return Body.setAttribute('class', `${theme}`)
 }

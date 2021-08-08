@@ -1,3 +1,6 @@
+const Footer = document.getElementById('footer')
+Footer.innerHTML = `&copy; Susie Ward ${new Date().getFullYear()}`
+
 const BaseInput = document.getElementById('base-input')
 const CompInput = document.getElementById('comp-input')
 const BaseUpload = document.getElementById('base-upload')

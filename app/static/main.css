@@ -223,6 +223,13 @@ a {
   margin: 0 auto;
 }
 
+#output-wrapper {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(auto, 1fr));
+  grid-auto-rows: auto;
+  grid-gap: 20px;
+  align-content: flex-start;
+}
 
 #images-output {
   display: grid;
