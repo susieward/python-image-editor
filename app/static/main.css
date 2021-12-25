@@ -223,6 +223,17 @@ a {
   margin: 0 auto;
 }
 
+.gallery-img-container {
+  display: grid;
+  align-content: flex-start;
+  grid-auto-rows: auto;
+}
+
+.gallery-img {
+  max-width: 100%;
+  height: auto;
+}
+
 #output-wrapper {
   display: grid;
   grid-template-columns: repeat(2, minmax(auto, 1fr));

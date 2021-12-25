@@ -1,6 +1,5 @@
 const Footer = document.getElementById('footer')
 Footer.innerHTML = `&copy; Susie Ward ${new Date().getFullYear()}`
-
 const BaseInput = document.getElementById('base-input')
 const CompInput = document.getElementById('comp-input')
 const BaseUpload = document.getElementById('base-upload')
@@ -26,94 +25,98 @@ var images = {
   top_imgs: []
 }
 
-BaseInput.addEventListener('change', function(){
-  let ctx = this
-  return handleFiles(ctx, 'base_img')
-}, false)
+window.addEventListener('DOMContentLoaded', initListeners)
 
-CompInput.addEventListener('change', function(){
-  let ctx = this
-  return handleFiles(ctx, 'top_imgs')
-}, false)
+function initListeners() {
+  BaseInput.addEventListener('change', function() {
+    return handleFiles(this, 'base_img')
+  }, false)
 
-BaseUpload.addEventListener('click', (e) => {
-  e.preventDefault()
-  BaseInput.click()
-}, false)
+  CompInput.addEventListener('change', function() {
+    return handleFiles(this, 'top_imgs')
+  }, false)
 
-CompUpload.addEventListener('click', (e) => {
-  e.preventDefault()
-  CompInput.click()
-}, false)
+  BaseUpload.addEventListener('click', (e) => {
+    e.preventDefault()
+    BaseInput.click()
+  }, false)
 
-UploadBtn.addEventListener('click', getComposite, false)
+  CompUpload.addEventListener('click', (e) => {
+    e.preventDefault()
+    CompInput.click()
+  }, false)
 
+  UploadBtn.addEventListener('click', getComposite, false)
+}
 
 // composite API call logic
 async function getComposite(){
+  // const selectEls = [...Sidebar.querySelectorAll('select')]
+  const isValid = validate()
+  if (!isValid) return
+
+  UploadBtn.innerText = "creating..."
+  UploadBtn.setAttribute('disabled', true)
+  const payload = JSON.stringify(Object.values(data))
   try {
-    const selectEls = [...Sidebar.querySelectorAll('select')]
-    ErrorOutput.innerText = ''
-    if (!images.base_img || images.top_imgs.length === 0) {
-      ErrorOutput.innerText = 'Both a base image and at least one composite image must be uploaded.'
-      return
-    }
-    if (Object.values(data).some(val => val.length === 0)) {
-      return ErrorOutput.innerText = 'All composite images must have a selected operator value.'
-    }
-    UploadBtn.innerText = "creating..."
-    UploadBtn.setAttribute('disabled', true)
-    const res = await fetch('/composite', {
+    let res = await fetch('/composite', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(Object.values(data))
+      headers: { 'Content-Type': 'application/json' },
+      body: payload
     })
-
-   if (!res.ok) {
-     let message = await res.text()
-     message = JSON.parse(message)
-     throw new Error(message.detail)
-   }
-     const blob = await res.blob()
-     const objectURL = URL.createObjectURL(blob)
-
-     if (!resultImg) {
-       let link = document.createElement("a")
-       link.setAttribute('id', 'download-link')
-       link.setAttribute('download', 'image.png')
-       link.innerText = 'download image'
-       let div = document.getElementById('sidebar-wrapper')
-       div.insertBefore(link, ErrorOutput)
-       downloadLink = document.getElementById('download-link')
-       let img = document.createElement("img")
-       img.setAttribute('id', 'result-img')
-       resultImg = img
-     }
-     resultImg.addEventListener('load', (e) => {
-       let result = e.path[0]
-       result.setAttribute('width', 'auto')
-       result.setAttribute('style', 'object-fit: cover')
-       Canvas.setAttribute('width', result.width)
-       Canvas.setAttribute('height', result.height)
-       ctx.drawImage(resultImg, 0, 0);
-     })
-     resultImg.src = objectURL
-     downloadLink.href = objectURL
-     UploadBtn.innerText = "create composite"
-     UploadBtn.removeAttribute('disabled')
-  } catch(err){
+    res = await handleRes(res)
+    const blob = await res.blob()
+    const objectURL = URL.createObjectURL(blob)
+    if (!resultImg) resultImg = initResultImg()
+    resultImg.addEventListener('load', handleResultImgLoad)
+    resultImg.src = objectURL
+    downloadLink.href = objectURL
+  } catch(err) {
     console.log('err', err)
     ErrorOutput.innerText = err
+  } finally {
     UploadBtn.innerText = "create composite"
     UploadBtn.removeAttribute('disabled')
-    throw err
   }
 }
 
+function validate() {
+  ErrorOutput.innerText = ''
+  if (!images.base_img || images.top_imgs.length === 0) {
+    ErrorOutput.innerText = 'Both a base image and at least one composite image must be uploaded.'
+    return false
+  }
+  if (Object.values(data).some(val => val.length === 0)) {
+    ErrorOutput.innerText = 'All composite images must have a selected operator value.'
+    return false
+  }
+  return true
+}
+
+function handleResultImgLoad(e) {
+  let result = e.path ? e.path[0] : e.target
+  result.setAttribute('width', 'auto')
+  result.setAttribute('style', 'object-fit: cover')
+  Canvas.setAttribute('width', result.width)
+  Canvas.setAttribute('height', result.height)
+  ctx.drawImage(resultImg, 0, 0);
+}
+
+function initResultImg() {
+  let link = document.createElement("a")
+  link.setAttribute('id', 'download-link')
+  link.setAttribute('download', 'image.png')
+  link.innerText = 'download image'
+  let div = document.getElementById('sidebar-wrapper')
+  div.insertBefore(link, ErrorOutput)
+  downloadLink = document.getElementById('download-link')
+  let img = document.createElement("img")
+  img.setAttribute('id', 'result-img')
+  return img
+}
+
 // image file upload logic
-function handleFiles(context, imgKey){
+function handleFiles(context, imgKey) {
   try {
     const files = Array.from(context.files)
     const urlReader = getImgUrlReader(imgKey)
@@ -123,7 +126,6 @@ function handleFiles(context, imgKey){
     blobReader.readAsArrayBuffer(file)
   } catch(err){
     console.log('handleFiles err: ', err)
-    throw err
   }
 }
 
@@ -131,22 +133,11 @@ function getImgUrlReader(imgKey){
   const baseImg = document.getElementById('base_img')
   const reader = new FileReader()
   reader.onload = (e) => {
-    let img = (imgKey === 'base_img')
-      ? baseImg
-      : new Image()
+    let img = (imgKey === 'base_img') ? baseImg : new Image()
     let canvasBaseImg = new Image()
     if (imgKey === 'base_img') {
       canvasBaseImg.addEventListener('load', (e) => {
-        let result = e.path[0]
-        result.setAttribute('width', 'auto')
-        result.setAttribute('style', 'object-fit: cover')
-
-        if (Canvas.hasAttribute('style')) {
-          Canvas.removeAttribute('style')
-        }
-        Canvas.setAttribute('width', result.width)
-        Canvas.setAttribute('height', result.height)
-        ctx.drawImage(canvasBaseImg, 0, 0);
+        return handleCanvasBaseImgLoad(e, canvasBaseImg)
       })
     }
     img.src = e.target.result
@@ -160,7 +151,17 @@ function getImgUrlReader(imgKey){
   return reader
 }
 
-function getImgBlobReader(imgKey){
+function handleCanvasBaseImgLoad(e, canvasBaseImg) {
+  let result = e.path ? e.path[0] : e.target
+  result.setAttribute('width', 'auto')
+  result.setAttribute('style', 'object-fit: cover')
+  if (Canvas.hasAttribute('style')) Canvas.removeAttribute('style')
+  Canvas.setAttribute('width', result.width)
+  Canvas.setAttribute('height', result.height)
+  ctx.drawImage(canvasBaseImg, 0, 0)
+}
+
+function getImgBlobReader(imgKey) {
   const reader = new FileReader()
   reader.onload = async (e) => {
     let blob = new Blob([e.target.result])
@@ -176,7 +177,7 @@ function getImgBlobReader(imgKey){
   return reader
 }
 
-async function uploadImgBlob(imgKey, blob){
+async function uploadImgBlob(imgKey, blob) {
   try {
     const res = await fetch(`/${imgKey}`, {
       method: 'POST',
@@ -186,19 +187,16 @@ async function uploadImgBlob(imgKey, blob){
       if (res.status == 413) {
         throw new Error(res.statusText)
       }
-      let message = await res.text()
-      message = JSON.parse(message)
-      throw new Error(message.detail)
+      return await handleRes(res)
     }
     return res
-  } catch(err){
+  } catch(err) {
     console.log('err', err)
     ErrorOutput.innerText = err
-    throw err
   }
 }
 
-function initImageSelect(img){
+function initImageSelect(img) {
   let key = `op${Math.random().toString().slice(8)}`;
   const wrapper = document.createElement('div')
   wrapper.setAttribute('class', 'wrapper')
@@ -215,7 +213,7 @@ function initImageSelect(img){
 }
 
 // select dropdown handlers + adding/removing select elements
-function createSelect(key){
+function createSelect(key) {
   const newSelect = document.createElement("select")
   const newCloseBtn = document.createElement('div')
   newSelect.innerHTML = Select.innerHTML
@@ -225,11 +223,11 @@ function createSelect(key){
   return { newSelect, newCloseBtn }
 }
 
-function handleSelect(e, key){
+function handleSelect(e, key) {
   data[`${key}`] = e.target.value
 }
 
-function handleRemove(e, key){
+function handleRemove(e, key) {
   const index = Object.keys(data).findIndex(k => k === `${key}`)
   if (index === -1) {
     throw new Error('handleRemove: index = -1')
@@ -242,13 +240,13 @@ function handleRemove(e, key){
       const parent = child.parentNode
       parent.remove()
     }).catch(err => {
+      console.log('handleRemove:', err)
       ErrorOutput.innerText = err
-      throw err
     })
   }
 }
 
-async function removeImgBlob(index, key){
+async function removeImgBlob(index, key) {
   try {
     const res = await fetch(`/remove`, {
       method: 'POST',
@@ -260,7 +258,7 @@ async function removeImgBlob(index, key){
   }
 }
 
-async function handleRes(res){
+async function handleRes(res) {
   if (!res.ok) {
     let message = await res.text()
     message = JSON.parse(message)

@@ -1,19 +1,21 @@
 const ImagesOutput = document.getElementById('gallery-images-output')
 const OutputWrapper = document.querySelector('#output-wrapper')
 
-getImages()
+window.addEventListener('DOMContentLoaded', () => {
+  getImages()
+})
 
-async function getImages(){
+async function getImages() {
   try {
     let data = await fetch('/gallery/images').then(res => res.json())
-    if (data && data.length > 0) {
+    if (data?.length > 0) {
       data = data.reverse()
       const generator = generateImages(data)
       for await (const result of generator) {
         displayImage(result)
       }
     }
-  } catch(err){
+  } catch(err) {
     console.error(err)
     throw err
   }
@@ -25,9 +27,7 @@ async function* generateImages(data) {
 
   while (true) {
     item = data[index]
-    if (!item) {
-      break
-    }
+    if (!item) break
     const blob = await fetch(`/file/${item.file_id}`).then(res => res.blob())
     item.src = URL.createObjectURL(blob)
     yield item
@@ -35,12 +35,24 @@ async function* generateImages(data) {
   }
 }
 
-function displayImage(item){
+function displayImage(item) {
   const div = document.createElement('div')
-  div.setAttribute('style', 'display: grid; align-content: flex-start; grid-auto-rows: auto')
-  const str = `<img class="gallery-img" id="${item.id}" src="${item.src}" style="max-width: 100%; height: auto;" />`
-  div.innerHTML = str
+  div.setAttribute('class', 'gallery-img-container')
+  let img = document.createElement('img')
+  img = setAttributes(img, {
+    class: 'gallery-img',
+    id: item.id,
+    src: item.src
+  })
+  div.appendChild(img)
   OutputWrapper.append(div)
+}
+
+function setAttributes(el, attrs) {
+  for (const key of Object.keys(attrs)) {
+    el.setAttribute(key, attrs[key])
+  }
+  return el
 }
 /*
 function displayGallery(imgs, clear = false){
