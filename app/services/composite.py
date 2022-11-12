@@ -1,29 +1,23 @@
 from wand.image import Image
-from wand.drawing import Drawing
+from typing import Sequence
 
-async def composite_img(base_img, comp_imgs, ops):
-    base = Image(blob = base_img).clone()
-    with Drawing() as draw:
-        for i, img in enumerate(comp_imgs):
-            with Image(blob = img) as comp:
-                op = ops[i]
-                draw.composite(operator = op, left = 0, top = 0,
-                    width = base.width, height = base.height, image = comp)
-        draw(base)
-        # base.morphology(method = 'smooth', kernel = 'blur')
-        return base.make_blob('jpeg')
+image_actions = [
+    'vignette',
+    'unsharp_mask',
+    'wave',
+    'wavelet_denoise'
+]
 
 class CompositeService:
-    def __init__(self):
+    def __init__(self) -> None:
         self.base_img = None
         self.comp_imgs = []
-        self.ops = []
 
     def reset(self):
         self.base_img = None
         self.comp_imgs = []
-        self.ops = []
-        print(self.base_img, self.comp_imgs, self.ops)
+        print(self.base_img, self.comp_imgs)
+        return
 
     def set_base(self, img):
         self.base_img = img
@@ -31,17 +25,19 @@ class CompositeService:
     def add_img(self, img):
         self.comp_imgs.append(img)
 
-    def remove_img(self, index):
+    def remove_img(self, index: int):
         img = self.comp_imgs[index]
         self.comp_imgs.remove(img)
         return len(self.comp_imgs)
 
-    def set_ops(self, ops):
-        self.ops = ops
+    async def create_composite(self, ops: Sequence[str]):
+        return self.composite_img(ops=ops)
 
-    async def create_composite(self):
-        try:
-            result = await composite_img(self.base_img, self.comp_imgs, self.ops)
-            return result
-        except Exception as e:
-            raise e
+    def composite_img(self, ops: Sequence[str]):
+        with Image(blob=self.base_img) as base:
+            for i, img in enumerate(self.comp_imgs):
+                op = ops[i]
+                with Image(blob=img) as comp_img:
+                    comp_img.resize(width=base.width, height=base.height)
+                    base.composite(comp_img, operator=op, left=0, top=0)
+            return base.make_blob('jpeg')

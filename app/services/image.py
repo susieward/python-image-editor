@@ -16,7 +16,7 @@ class ImageService(BaseApiService[Image, ImageAddVM, ImageUpdateVM]):
         file_id = record.get('file_id')
         name = record.get('name')
         file_data = await file_service.get(file_id)
-        print(len(file_data))
+        # print(len(file_data))
         return file_data
 
         #with tempfile.SpooledTemporaryFile() as f:

@@ -16,6 +16,9 @@ Mode.addEventListener('click', (e) => {
 })
 
 function setCurrentTheme(isDarkMode) {
-  const theme = (isDarkMode === true) ? 'theme-dark' : 'theme-light'
-  return Body.setAttribute('class', `${theme}`)
+  if (isDarkMode === true) {
+    Body.setAttribute('class', `theme-dark`)
+  } else {
+    if (Body.hasAttribute('class')) Body.removeAttribute('class')
+  }
 }

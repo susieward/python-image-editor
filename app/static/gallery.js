@@ -3,17 +3,17 @@ const OutputWrapper = document.querySelector('#output-wrapper')
 
 getImages()
 
-async function getImages(){
+async function getImages() {
   try {
     let data = await fetch('/gallery/images').then(res => res.json())
-    if (data && data.length > 0) {
+    if (data?.length > 0) {
       data = data.reverse()
       const generator = generateImages(data)
       for await (const result of generator) {
         displayImage(result)
       }
     }
-  } catch(err){
+  } catch(err) {
     console.error(err)
     throw err
   }
@@ -22,20 +22,21 @@ async function getImages(){
 async function* generateImages(data) {
   let index = 0
   let item
+  let blob
 
   while (true) {
     item = data[index]
     if (!item) {
       break
     }
-    const blob = await fetch(`/file/${item.file_id}`).then(res => res.blob())
+    blob = await fetch(`/file/${item.file_id}`).then(res => res.blob())
     item.src = URL.createObjectURL(blob)
     yield item
     index++
   }
 }
 
-function displayImage(item){
+function displayImage(item) {
   const div = document.createElement('div')
   div.setAttribute('style', 'display: grid; align-content: flex-start; grid-auto-rows: auto')
   const str = `<img class="gallery-img" id="${item.id}" src="${item.src}" style="max-width: 100%; height: auto;" />`

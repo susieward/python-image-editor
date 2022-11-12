@@ -3,10 +3,14 @@ asyncpg==0.22.0
 click==7.1.2
 databases==0.4.3
 fastapi==0.63.0
+fimage==0.2.1
 h11==0.12.0
 httptools==0.1.1
 Jinja2==2.11.3
 MarkupSafe==1.1.1
+numpy==1.22.1
+opencv-python==4.5.5.62
+Pillow==8.4.0
 pydantic==1.8
 python-dotenv==0.15.0
 python-multipart==0.0.5
